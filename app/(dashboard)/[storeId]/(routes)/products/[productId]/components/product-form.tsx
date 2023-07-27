@@ -25,7 +25,13 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { AlertModal } from "@/components/modals/alert-modal";
 import ImageUpload from "@/components/ui/image-upload";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
@@ -42,9 +48,11 @@ const formSchema = z.object({
 type ProductFormValues = z.infer<typeof formSchema>;
 
 interface ProductFormProps {
-  initialData: Product & {
-    images: Image[]
-  } | null;
+  initialData:
+    | (Product & {
+        images: Image[];
+      })
+    | null;
   categories: Category[];
   sizes: Size[];
   colors: Color[];
@@ -54,7 +62,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   initialData,
   categories,
   sizes,
-  colors
+  colors,
 }) => {
   const params = useParams();
   const router = useRouter();
@@ -63,24 +71,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [loading, setLoading] = useState(false);
 
   const title = initialData ? "Edit product" : "Create product";
-  const description = initialData
-    ? "Edit a product"
-    : "Create a new product";
+  const description = initialData ? "Edit a product" : "Create a new product";
   const toastMessage = initialData ? "Product updated" : "Product created";
   const action = initialData ? "Save changes" : "Create";
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData ? { ...initialData, price: parseFloat(String(initialData?.price)) } : {
-      name: "",
-      images: [],
-      price: 0,
-      categoryId: '',
-      colorId: '',
-      sizeId: '',
-      isFeatured: false,
-      isArchived: false
-    },
+    defaultValues: initialData
+      ? { ...initialData, price: parseFloat(String(initialData?.price)) }
+      : {
+          name: "",
+          images: [],
+          price: 0,
+          categoryId: "",
+          colorId: "",
+          sizeId: "",
+          isFeatured: false,
+          isArchived: false,
+        },
   });
 
   const onSubmit = async (data: ProductFormValues) => {
@@ -108,16 +116,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const onDelete = async () => {
     try {
       setLoading(true);
-      await axios.delete(
-        `/api/${params.storeId}/products/${params.productId}`
-      );
+      await axios.delete(`/api/${params.storeId}/products/${params.productId}`);
       router.refresh();
       router.push(`/${params.storeId}/products`);
       toast.success("Product deleted.");
     } catch (error) {
-      toast.error(
-        "Something went wrong."
-      );
+      toast.error("Something went wrong.");
     } finally {
       setLoading(false);
       setOpen(false);
@@ -161,8 +165,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <ImageUpload
                     value={field.value.map((image) => image.url)}
                     disabled={loading}
-                    onChange={(url) => field.onChange([...field.value])}
-                    onRemove={(url) => field.onChange([...field.value.filter((current) => current.url !== url)])}
+                    onChange={(url) =>
+                      field.onChange([...field.value, { url }])
+                    }
+                    onRemove={(url) =>
+                      field.onChange([
+                        ...field.value.filter((current) => current.url !== url),
+                      ])
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -216,15 +226,21 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       disabled={loading}
                       onValueChange={field.onChange}
                       value={field.value}
-                      defaultValue={field.value}>
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue defaultValue={field.value} placeholder='Select a category' />
+                          <SelectValue
+                            defaultValue={field.value}
+                            placeholder="Select a category"
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -244,15 +260,21 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       disabled={loading}
                       onValueChange={field.onChange}
                       value={field.value}
-                      defaultValue={field.value}>
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue defaultValue={field.value} placeholder='Select a size' />
+                          <SelectValue
+                            defaultValue={field.value}
+                            placeholder="Select a size"
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {sizes.map((size) => (
-                          <SelectItem key={size.id} value={size.id}>{size.name}</SelectItem>
+                          <SelectItem key={size.id} value={size.id}>
+                            {size.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -272,15 +294,21 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       disabled={loading}
                       onValueChange={field.onChange}
                       value={field.value}
-                      defaultValue={field.value}>
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue defaultValue={field.value} placeholder='Select a color' />
+                          <SelectValue
+                            defaultValue={field.value}
+                            placeholder="Select a color"
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {colors.map((color) => (
-                          <SelectItem key={color.id} value={color.id}>{color.name}</SelectItem>
+                          <SelectItem key={color.id} value={color.id}>
+                            {color.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -295,12 +323,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox checked={field.value}
-                      onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Featured</FormLabel>
-                    <FormDescription>This product will appear on the home page</FormDescription>
+                    <FormDescription>
+                      This product will appear on the home page
+                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -311,12 +343,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox checked={field.value}
-                      onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Archived</FormLabel>
-                    <FormDescription>This product will not appear on the home page</FormDescription>
+                    <FormDescription>
+                      This product will not appear on the home page
+                    </FormDescription>
                   </div>
                 </FormItem>
               )}
